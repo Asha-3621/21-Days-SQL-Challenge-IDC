@@ -1,0 +1,115 @@
+/*Phase 1: Foundation & Inspection
+
+Q1:List all unique pizza categories (DISTINCT).*/
+SELECT DISTINCT category from pizza_types;
+
+/*Q2:Display pizza_type_id, name, and ingredients,
+ replacing NULL ingredients with "Missing Data". Show first 5 rows.*/
+ SELECT pizza_type_id, name, 
+COALESCE(ingredients, 'Missing Data') AS ingredients
+ FROM pizza_types
+ LIMIT 5;
+ 
+ /*Q3.Check for pizzas missing a price (IS NULL).*/
+ SELECT pizza_id ,price
+ from pizzas
+ WHERE price IS NULL;
+ 
+ /*Phase 2: Filtering & Exploration*/
+ 
+ /*Q1:Orders placed on '2015-01-01' (SELECT + WHERE).*/
+SELECT * from orders
+WHERE date = '01-01-2015';
+
+/*Q2:List pizzas with price descending.*/
+SELECT pt.pizza_type_id,pt.name,pt.category,p.size,p.price
+FROM pizza_types AS pt LEFT JOIN pizzas AS p ON
+pt.pizza_type_id=p.pizza_type_id
+ORDER BY p.price desc;
+
+/*Q3:Pizzas priced between $15.00 and $17.00.*/
+SELECT pt.pizza_type_id,pt.name,p.size,p.price
+FROM pizza_types AS pt LEFT JOIN pizzas AS p ON
+pt.pizza_type_id=p.pizza_type_id
+WHERE price BETWEEN 15.00 AND 17.00;
+
+/*Q4:Pizzas with "Chicken" in the name.*/
+SELECT name AS Pizza_name from pizza_types
+WHERE name LIKE '%Chicken%';
+
+/*Q5:Orders on '2015-02-15' or placed after 8 PM.*/
+SELECT * from orders
+WHERE DATE = '15-02-2015' AND time >'20:00:00';
+
+/*Phase 3: Sales Performance*/
+
+/*Q1:Total quantity of pizzas sold (SUM).*/
+SELECT SUM(quantity) AS Total_pizzas_sold
+FROM order_details;
+
+/*Q2:Average pizza price (AVG).*/
+SELECT 
+ROUND(AVG(price),2) AS Avg_pizza_price
+FROM pizzas;
+
+/*Q3:Total order value per order (JOIN, SUM, GROUP BY).*/
+SELECT 
+od.order_id,
+SUM(od.quantity)*SUM(p.price) AS Total_value
+FROM 
+Pizzas p JOIN order_details od
+ON od.pizza_id=p.pizza_id
+GROUP BY od.order_id
+ORDER BY order_id;
+
+/*Q4: Total quantity sold per pizza category (JOIN, GROUP BY).*/
+SELECT DISTINCT pt.category,
+SUM(od.quantity) AS quantity_sold
+FROM pizzas p JOIN order_details od
+ON p.pizza_id=od.pizza_id
+JOIN pizza_types pt ON pt.pizza_type_id=p.pizza_type_id
+GROUP BY pt.category;
+
+/*Q5: Categories with more than 5,000 pizzas sold (HAVING).*/
+SELECT DISTINCT pt.category,
+SUM(od.quantity) AS quantity_sold
+FROM pizzas p JOIN order_details od
+ON p.pizza_id=od.pizza_id
+JOIN pizza_types pt ON pt.pizza_type_id=p.pizza_type_id
+GROUP BY pt.category
+HAVING quantity_sold > 5000;
+
+/*Q6: Pizzas never ordered (LEFT/RIGHT JOIN).*/
+SELECT pt.pizza_type_id, pt.name ,pt.category
+FROM pizza_types pt LEFT JOIN pizzas p
+ON pt.pizza_type_id=p.pizza_type_id
+LEFT JOIN 
+order_details od ON 
+p.pizza_id=od.pizza_id
+WHERE od.pizza_id IS NULL;
+
+/*Q7: Price differences between different sizes of the same pizza (SELF JOIN).*/
+SELECT 
+    p1.pizza_type_id,
+    p1.size AS from_size,
+    p2.size AS to_size,
+    ABS(p1.price - p2.price) AS price_difference
+FROM pizzas p1
+JOIN pizzas p2
+    ON p1.pizza_type_id = p2.pizza_type_id
+   AND p1.pizza_id < p2.pizza_id
+ORDER BY price_difference DESC;
+
+
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
